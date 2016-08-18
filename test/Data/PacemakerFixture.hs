@@ -32,7 +32,7 @@ BEGIN:VEVENT
 
 exampleEvent :: EventMap
 exampleEvent = Map.singleton ("uid0@example.com",Nothing) evt
-  where evt = basicEvent
+  where evt = mkEvent 0 "" "" (mkStartDate (fromGregorian 2016 8 20)) (mkEndDate (fromGregorian 2016 8 20))
 
 exampleEvents :: EventMap
 exampleEvents = Map.empty
