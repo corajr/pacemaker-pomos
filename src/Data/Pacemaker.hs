@@ -13,16 +13,23 @@ import Data.Monoid ((<>))
 import Text.Read (readMaybe)
 import Data.Maybe (fromMaybe)
 import Data.Time
-import Data.Default (def)
+import Data.Default
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.Map.Lazy as Map
 import qualified Data.ByteString.Lazy.Char8 as BL
 
+-- | Configuration
+data PacemakerOptions = PacemakerOptions
+  { pacePerPomo :: Int -- ^ words per hour
+  , dailyStartTime :: Int -- ^ start time in UTC seconds after midnight
+  }
+
+instance Default PacemakerOptions where
+  def = PacemakerOptions { pacePerPomo = 125
+                         , dailyStartTime = 17*60*60}
+
 parseWordCount :: String -> Int
 parseWordCount = fromMaybe 0 . readMaybe . takeWhile isDigit
-
-wordCountToTime :: Int -> (Int, Int)
-wordCountToTime wc = undefined
 
 -- | Pacemaker's output is missing the PRODID needed for parsing. This function
 -- adds it in.
@@ -44,16 +51,16 @@ correctFormat = correctFormatWith [ insertProdID
                                   , insertDTstampAndUID
                                   ]
 
-transformVCalendar :: VCalendar -> VCalendar
-transformVCalendar cal = cal { vcEvents = transformVEvents (vcEvents cal) }
+transformVCalendar :: PacemakerOptions -> VCalendar -> VCalendar
+transformVCalendar opts cal = cal { vcEvents = transformVEvents opts (vcEvents cal) }
 
 eventToDateAndWordCount :: VEvent -> (Day, Int)
 eventToDateAndWordCount (VEvent {..}) =
   ( maybe (error "Not a date") (dateValue . dtStartDateValue) veDTStart
   , parseWordCount (maybe "" (Text.unpack . summaryValue) veSummary))
 
-wordCountToPomos :: Int -> Int
-wordCountToPomos x = ceiling (fromIntegral x / 125)
+wordCountToPomos :: PacemakerOptions -> Int -> Int
+wordCountToPomos (PacemakerOptions {..}) x = ceiling (fromIntegral x / fromIntegral pacePerPomo)
 
 halfHoursFrom :: UTCTime -> [UTCTime]
 halfHoursFrom z = iterate (hh `addUTCTime`) z
@@ -67,19 +74,18 @@ pomosToHalfHours = go 0
                | otherwise = (n, n + 3) : go (n + 4) (i - 3)
 
 
-pomosToTimeBlocks :: Day -> Int -> [(UTCTime, UTCTime)]
-pomosToTimeBlocks date i = map (\(a,b) -> (hh !! a, hh !! b)) (pomosToHalfHours i)
-  where startTime = UTCTime date (15*3600)
-        hh = halfHoursFrom startTime
+pomosToTimeBlocks :: PacemakerOptions -> Day -> Int -> [(UTCTime, UTCTime)]
+pomosToTimeBlocks (PacemakerOptions {..}) date i = map (\(a,b) -> (hh !! a, hh !! b)) (pomosToHalfHours i)
+  where hh = halfHoursFrom (UTCTime date (fromIntegral dailyStartTime))
 
 timeBlockToEvent :: (UTCTime, UTCTime) -> SimpleEvent
 timeBlockToEvent (start, end) =
   SimpleEvent "125 words" "" (mkStartDT (UTCDateTime start)) (mkEndDT (UTCDateTime end))
 
-transformVEvents :: EventMap -> EventMap
-transformVEvents evts = eventsToMap (concatMap f dateswcs)
+transformVEvents :: PacemakerOptions -> EventMap -> EventMap
+transformVEvents opts evts = eventsToMap (concatMap f dateswcs)
   where dateswcs = map eventToDateAndWordCount (Map.elems evts)
-        f (date, wc) = map timeBlockToEvent (pomosToTimeBlocks date (wordCountToPomos wc))
+        f (date, wc) = map timeBlockToEvent (pomosToTimeBlocks opts date (wordCountToPomos opts wc))
 
 parseScheduleFile :: FilePath -> IO (Either String ([VCalendar], [String]))
 parseScheduleFile path = do
@@ -89,6 +95,6 @@ parseScheduleFile path = do
 parseScheduleText :: String -> ByteString -> Either String ([VCalendar], [String])
 parseScheduleText path = parseICalendar def path . correctFormat
 
-makeSchedule :: ByteString -> ByteString
-makeSchedule = either (BL.pack) makeCal . parseScheduleText "STDIN" . correctFormat
-  where makeCal = printICalendar def . transformVCalendar . head . fst
+makeSchedule :: PacemakerOptions -> ByteString -> ByteString
+makeSchedule opts = either (BL.pack) makeCal . parseScheduleText "STDIN" . correctFormat
+  where makeCal = printICalendar def . transformVCalendar opts . head . fst

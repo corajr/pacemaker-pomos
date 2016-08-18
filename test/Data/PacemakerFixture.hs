@@ -31,22 +31,22 @@ BEGIN:VEVENT
 
 exampleEvent :: EventMap
 exampleEvent =
-  eventsToMap [ SimpleEvent "750 words" "" (mkStartDate (fromGregorian 2016 8 20)) (mkEndDate (fromGregorian 2016 8 20))
+  eventsToMap [ SimpleEvent "725 words" "" (mkStartDate (fromGregorian 2016 8 20)) (mkEndDate (fromGregorian 2016 8 20))
               ]
 
 exampleStartDate :: Day
 exampleStartDate = fromGregorian 2016 8 20
 
 exampleStartHour :: UTCTime
-exampleStartHour = UTCTime exampleStartDate (15*3600)
+exampleStartHour = UTCTime exampleStartDate (17*3600)
 
 halfHours :: [UTCTime]
 halfHours = halfHoursFrom exampleStartHour
 
 exampleEvents :: EventMap
 exampleEvents =
-  eventsToMap [ SimpleEvent "125 words" "" (mkStartDT (UTCDateTime (hh !! 0))) (mkEndDT (UTCDateTime (hh !! 3)))
-              , SimpleEvent "125 words" "" (mkStartDT (UTCDateTime (hh !! 4))) (mkEndDT (UTCDateTime (hh !! 7)))
+  eventsToMap [ SimpleEvent "375 words" "" (mkStartDT (UTCDateTime (hh !! 0))) (mkEndDT (UTCDateTime (hh !! 3)))
+              , SimpleEvent "350 words" "" (mkStartDT (UTCDateTime (hh !! 4))) (mkEndDT (UTCDateTime (hh !! 7)))
               ]
   where date = fromGregorian 2016 8 20
         hh = halfHours

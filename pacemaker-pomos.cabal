@@ -33,6 +33,7 @@ executable pacemaker-pomos
   build-depends:       base
                      , bytestring
                      , pacemaker-pomos
+                     , data-default
   default-language:    Haskell2010
 
 test-suite pacemaker-pomos-test
@@ -46,6 +47,7 @@ test-suite pacemaker-pomos-test
                      , iCalendar
                      , time
                      , containers
+                     , data-default
                      , text
                      , bytestring
                      , here

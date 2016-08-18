@@ -5,6 +5,7 @@ module Data.PacemakerSpec (main, spec) where
 import Data.Either (isRight)
 import Test.Hspec
 import Test.QuickCheck
+import Data.Default (def)
 import qualified Data.Map.Lazy as Map
 import Data.Time
 import Data.Monoid ((<>))
@@ -43,7 +44,7 @@ spec = do
                                   in eventToDateAndWordCount evt === (date, i)
   describe "wordCountToPomos" $ do
     it "takes a number of words and returns a number of pomodoros based on an avg rate" $ property $
-      \(NonNegative i) -> wordCountToPomos i >= i `div` 125
+      \(NonNegative i) -> wordCountToPomos def i >= i `div` (pacePerPomo def)
   describe "pomosToHalfHours" $ do
     it "takes a number of pomodoros and returns the indices of half-hours" $ do
       pomosToHalfHours 1 `shouldBe` [(0,1)]
@@ -59,16 +60,16 @@ spec = do
     it "takes a number of pomodoros and returns start and end times, starting at 9am" $ do
       let d = exampleStartDate
           hh = halfHours
-      pomosToTimeBlocks d 1 `shouldBe` [(hh !! 0, hh !! 1)]
-      pomosToTimeBlocks d 2 `shouldBe` [(hh !! 0, hh !! 2)]
-      pomosToTimeBlocks d 3 `shouldBe` [(hh !! 0, hh !! 3)]
-      pomosToTimeBlocks d 4 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 5)]
-      pomosToTimeBlocks d 5 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 6)]
-      pomosToTimeBlocks d 6 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 7)]
-      pomosToTimeBlocks d 7 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 7), (hh !! 8, hh !! 9)]
+      pomosToTimeBlocks def d 1 `shouldBe` [(hh !! 0, hh !! 1)]
+      pomosToTimeBlocks def d 2 `shouldBe` [(hh !! 0, hh !! 2)]
+      pomosToTimeBlocks def d 3 `shouldBe` [(hh !! 0, hh !! 3)]
+      pomosToTimeBlocks def d 4 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 5)]
+      pomosToTimeBlocks def d 5 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 6)]
+      pomosToTimeBlocks def d 6 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 7)]
+      pomosToTimeBlocks def d 7 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 7), (hh !! 8, hh !! 9)]
   describe "transformVEvents" $ do
     it "takes an EventMap and splits the events into 3-pomo blocks (with half-hour breaks)" $ do
-      transformVEvents exampleEvent `shouldBe` exampleEvents
+      transformVEvents def exampleEvent `shouldBe` exampleEvents
   describe "makeSchedule" $ do
     it "turns an all-day Pacemaker schedule into a Pomodoro-friendly block schedule" $ do
       pending
