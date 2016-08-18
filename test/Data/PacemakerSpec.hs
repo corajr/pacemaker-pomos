@@ -60,13 +60,7 @@ spec = do
     it "takes a number of pomodoros and returns start and end times, starting at 9am" $ do
       let d = exampleStartDate
           hh = halfHours
-      pomosToTimeBlocks def d 1 `shouldBe` [(hh !! 0, hh !! 1)]
-      pomosToTimeBlocks def d 2 `shouldBe` [(hh !! 0, hh !! 2)]
-      pomosToTimeBlocks def d 3 `shouldBe` [(hh !! 0, hh !! 3)]
-      pomosToTimeBlocks def d 4 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 5)]
-      pomosToTimeBlocks def d 5 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 6)]
-      pomosToTimeBlocks def d 6 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 7)]
-      pomosToTimeBlocks def d 7 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 7), (hh !! 8, hh !! 9)]
+      pomosToTimeBlocks def d 100 1 `shouldBe` [(hh !! 0, hh !! 1, 100)]
   describe "transformVEvents" $ do
     it "takes an EventMap and splits the events into 3-pomo blocks (with half-hour breaks)" $ do
       transformVEvents def exampleEvent `shouldBe` exampleEvents

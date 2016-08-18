@@ -14,6 +14,7 @@ import Text.Read (readMaybe)
 import Data.Maybe (fromMaybe)
 import Data.Time
 import Data.Default
+import Data.String (fromString)
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.Map.Lazy as Map
 import qualified Data.ByteString.Lazy.Char8 as BL
@@ -73,19 +74,21 @@ pomosToHalfHours = go 0
                | i < 3 = [(n, n + i)]
                | otherwise = (n, n + 3) : go (n + 4) (i - 3)
 
+pomosToTimeBlocks :: PacemakerOptions -> Day -> Int -> Int -> [(UTCTime, UTCTime, Int)]
+pomosToTimeBlocks (PacemakerOptions {..}) date wc i = snd $ mapAccumL f wc (pomosToHalfHours i)
+  where f remainingWords (start, end) = let wordsThisBlock = (end - start) * pacePerPomo
+                                            actualWordsThisBlock = minimum [remainingWords, wordsThisBlock]
+                                        in (remainingWords - wordsThisBlock, (hh !! start, hh !! end, actualWordsThisBlock))
+        hh = halfHoursFrom (UTCTime date (fromIntegral dailyStartTime))
 
-pomosToTimeBlocks :: PacemakerOptions -> Day -> Int -> [(UTCTime, UTCTime)]
-pomosToTimeBlocks (PacemakerOptions {..}) date i = map (\(a,b) -> (hh !! a, hh !! b)) (pomosToHalfHours i)
-  where hh = halfHoursFrom (UTCTime date (fromIntegral dailyStartTime))
-
-timeBlockToEvent :: (UTCTime, UTCTime) -> SimpleEvent
-timeBlockToEvent (start, end) =
-  SimpleEvent "125 words" "" (mkStartDT (UTCDateTime start)) (mkEndDT (UTCDateTime end))
+timeBlockToEvent :: (UTCTime, UTCTime, Int) -> SimpleEvent
+timeBlockToEvent (start, end, words) =
+  SimpleEvent (fromString (show words) <> " words") "" (mkStartDT (UTCDateTime start)) (mkEndDT (UTCDateTime end))
 
 transformVEvents :: PacemakerOptions -> EventMap -> EventMap
 transformVEvents opts evts = eventsToMap (concatMap f dateswcs)
   where dateswcs = map eventToDateAndWordCount (Map.elems evts)
-        f (date, wc) = map timeBlockToEvent (pomosToTimeBlocks opts date (wordCountToPomos opts wc))
+        f (date, wc) = map timeBlockToEvent (pomosToTimeBlocks opts date wc (wordCountToPomos opts wc))
 
 parseScheduleFile :: FilePath -> IO (Either String ([VCalendar], [String]))
 parseScheduleFile path = do
