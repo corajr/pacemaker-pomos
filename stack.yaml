@@ -1,0 +1,9 @@
+flags: {}
+extra-package-dbs: []
+packages:
+- '.'
+extra-deps:
+- iCalendar-0.4.0.3
+- mime-0.4.0.2
+- text-1.2.2.1
+resolver: lts-6.12
