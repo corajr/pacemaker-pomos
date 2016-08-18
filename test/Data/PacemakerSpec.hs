@@ -53,6 +53,8 @@ spec = do
       pomosToHalfHours 5 `shouldBe` [(0,3), (4,6)]
       pomosToHalfHours 6 `shouldBe` [(0,3), (4,7)]
       pomosToHalfHours 7 `shouldBe` [(0,3), (4,7), (8, 9)]
+    it "will always require ceil(i/3) blocks of time" $ property $
+      \(Positive i) -> length (pomosToHalfHours i) === ceiling (fromIntegral i / 3)
   describe "pomosToTimeBlocks" $ do
     it "takes a number of pomodoros and returns start and end times, starting at 9am" $ do
       let d = exampleStartDate

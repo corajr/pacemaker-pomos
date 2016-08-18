@@ -60,7 +60,12 @@ halfHoursFrom z = iterate (hh `addUTCTime`) z
   where hh = fromInteger (30*60)
 
 pomosToHalfHours :: Int -> [(Int, Int)]
-pomosToHalfHours i = [(0, 1)]
+pomosToHalfHours = go 0
+  where go :: Int -> Int -> [(Int, Int)]
+        go n i | i == 0 = []
+               | i < 3 = [(n, n + i)]
+               | otherwise = (n, n + 3) : go (n + 3 + 1) (i - 3)
+
 
 pomosToTimeBlocks :: Day -> Int -> [(UTCTime, UTCTime)]
 pomosToTimeBlocks date i = map (\(a,b) -> (hh !! a, hh !! b)) (pomosToHalfHours i)
