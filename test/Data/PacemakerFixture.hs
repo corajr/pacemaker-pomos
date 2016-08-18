@@ -45,8 +45,8 @@ halfHours = halfHoursFrom exampleStartHour
 
 exampleEvents :: EventMap
 exampleEvents =
-  eventsToMap [ SimpleEvent "" "" (mkStartDT (UTCDateTime (hh !! 0))) (mkEndDT (UTCDateTime (hh !! 3)))
-              , SimpleEvent "" "" (mkStartDT (UTCDateTime (hh !! 4))) (mkEndDT (UTCDateTime (hh !! 7)))
+  eventsToMap [ SimpleEvent "125 words" "" (mkStartDT (UTCDateTime (hh !! 0))) (mkEndDT (UTCDateTime (hh !! 3)))
+              , SimpleEvent "125 words" "" (mkStartDT (UTCDateTime (hh !! 4))) (mkEndDT (UTCDateTime (hh !! 7)))
               ]
   where date = fromGregorian 2016 8 20
         hh = halfHours

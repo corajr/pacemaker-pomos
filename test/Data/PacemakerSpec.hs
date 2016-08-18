@@ -43,7 +43,7 @@ spec = do
                                   in eventToDateAndWordCount evt === (date, i)
   describe "wordCountToPomos" $ do
     it "takes a number of words and returns a number of pomodoros based on an avg rate" $ property $
-      \(NonNegative i) -> wordCountToPomos i === i `div` 125
+      \(NonNegative i) -> wordCountToPomos i >= i `div` 125
   describe "pomosToHalfHours" $ do
     it "takes a number of pomodoros and returns the indices of half-hours" $ do
       pomosToHalfHours 1 `shouldBe` [(0,1)]

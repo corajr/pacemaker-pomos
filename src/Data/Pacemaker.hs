@@ -53,7 +53,7 @@ eventToDateAndWordCount (VEvent {..}) =
   , parseWordCount (maybe "" (Text.unpack . summaryValue) veSummary))
 
 wordCountToPomos :: Int -> Int
-wordCountToPomos x = x `div` 125
+wordCountToPomos x = ceiling (fromIntegral x / 125)
 
 halfHoursFrom :: UTCTime -> [UTCTime]
 halfHoursFrom z = iterate (hh `addUTCTime`) z
@@ -72,10 +72,14 @@ pomosToTimeBlocks date i = map (\(a,b) -> (hh !! a, hh !! b)) (pomosToHalfHours 
   where startTime = UTCTime date (15*3600)
         hh = halfHoursFrom startTime
 
+timeBlockToEvent :: (UTCTime, UTCTime) -> SimpleEvent
+timeBlockToEvent (start, end) =
+  SimpleEvent "125 words" "" (mkStartDT (UTCDateTime start)) (mkEndDT (UTCDateTime end))
+
 transformVEvents :: EventMap -> EventMap
 transformVEvents evts = eventsToMap (concatMap f dateswcs)
   where dateswcs = map eventToDateAndWordCount (Map.elems evts)
-        f (date, wc) = []
+        f (date, wc) = map timeBlockToEvent (pomosToTimeBlocks date (wordCountToPomos wc))
 
 parseScheduleFile :: FilePath -> IO (Either String ([VCalendar], [String]))
 parseScheduleFile path = do
