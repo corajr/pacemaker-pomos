@@ -26,9 +26,6 @@ spec = do
     it "turns the word count string into an Int" $ property $
       \(NonNegative i) -> let wc = show i ++ " words"
                           in parseWordCount wc === i
-  describe "wordCountToTimes" $ do
-    it "converts a word count to a list of max 3-pomo blocks with half hour breaks" $ do
-      pending
   describe "insertProdID" $ do
     it "corrects the calendar input to contain a prodID" $
       correctFormatWith [insertProdID] examplePreamble `shouldBe` exampleCorrectedPreamble
@@ -44,9 +41,31 @@ spec = do
                                                                       }]
                                       evt = head (Map.elems evts)
                                   in eventToDateAndWordCount evt === (date, i)
+  describe "wordCountToPomos" $ do
+    it "takes a number of words and returns a number of pomodoros based on an avg rate" $ property $
+      \(NonNegative i) -> wordCountToPomos i === i `div` 125
+  describe "pomosToHalfHours" $ do
+    it "takes a number of pomodoros and returns the indices of half-hours" $ do
+      pomosToHalfHours 1 `shouldBe` [(0,1)]
+      pomosToHalfHours 2 `shouldBe` [(0,2)]
+      pomosToHalfHours 3 `shouldBe` [(0,3)]
+      pomosToHalfHours 4 `shouldBe` [(0,3), (4,5)]
+      pomosToHalfHours 5 `shouldBe` [(0,3), (4,6)]
+      pomosToHalfHours 6 `shouldBe` [(0,3), (4,7)]
+      pomosToHalfHours 7 `shouldBe` [(0,3), (4,7), (8, 9)]
+  describe "pomosToTimeBlocks" $ do
+    it "takes a number of pomodoros and returns start and end times, starting at 9am" $ do
+      let d = exampleStartDate
+          hh = halfHours
+      pomosToTimeBlocks d 1 `shouldBe` [(hh !! 0, hh !! 1)]
+      pomosToTimeBlocks d 2 `shouldBe` [(hh !! 0, hh !! 2)]
+      pomosToTimeBlocks d 3 `shouldBe` [(hh !! 0, hh !! 3)]
+      pomosToTimeBlocks d 4 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 5)]
+      pomosToTimeBlocks d 5 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 6)]
+      pomosToTimeBlocks d 6 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 7)]
+      pomosToTimeBlocks d 6 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 7), (hh !! 8, hh !! 9)]
   describe "transformVEvents" $ do
     it "takes an EventMap and splits the events into 3-pomo blocks (with half-hour breaks)" $ do
-      pending
       transformVEvents exampleEvent `shouldBe` exampleEvents
   describe "makeSchedule" $ do
     it "turns an all-day Pacemaker schedule into a Pomodoro-friendly block schedule" $ do

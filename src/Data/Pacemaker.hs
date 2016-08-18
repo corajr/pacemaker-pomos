@@ -52,8 +52,25 @@ eventToDateAndWordCount (VEvent {..}) =
   ( maybe (error "Not a date") (dateValue . dtStartDateValue) veDTStart
   , parseWordCount (maybe "" (Text.unpack . summaryValue) veSummary))
 
+wordCountToPomos :: Int -> Int
+wordCountToPomos x = x `div` 125
+
+halfHoursFrom :: UTCTime -> [UTCTime]
+halfHoursFrom z = iterate (hh `addUTCTime`) z
+  where hh = fromInteger (30*60)
+
+pomosToHalfHours :: Int -> [(Int, Int)]
+pomosToHalfHours i = [(0, 1)]
+
+pomosToTimeBlocks :: Day -> Int -> [(UTCTime, UTCTime)]
+pomosToTimeBlocks date i = map (\(a,b) -> (hh !! a, hh !! b)) (pomosToHalfHours i)
+  where startTime = UTCTime date (15*3600)
+        hh = halfHoursFrom startTime
+
 transformVEvents :: EventMap -> EventMap
-transformVEvents = id
+transformVEvents evts = eventsToMap (concatMap f dateswcs)
+  where dateswcs = map eventToDateAndWordCount (Map.elems evts)
+        f (date, wc) = []
 
 parseScheduleFile :: FilePath -> IO (Either String ([VCalendar], [String]))
 parseScheduleFile path = do

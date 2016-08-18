@@ -2,8 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Data.PacemakerFixture where
 
-import Data.Pacemaker (EventMap)
-import Data.Pacemaker.Event
+import Data.Pacemaker
 import Text.ICalendar.Types
 import GHC.Exts
 import Data.Time
@@ -32,9 +31,22 @@ BEGIN:VEVENT
 
 exampleEvent :: EventMap
 exampleEvent =
-  eventsToMap [ SimpleEvent "" "" (mkStartDate (fromGregorian 2016 8 20)) (mkEndDate (fromGregorian 2016 8 20))
+  eventsToMap [ SimpleEvent "750 words" "" (mkStartDate (fromGregorian 2016 8 20)) (mkEndDate (fromGregorian 2016 8 20))
               ]
 
-exampleEvents :: EventMap
-exampleEvents = Map.empty
+exampleStartDate :: Day
+exampleStartDate = fromGregorian 2016 8 20
 
+exampleStartHour :: UTCTime
+exampleStartHour = UTCTime exampleStartDate (15*3600)
+
+halfHours :: [UTCTime]
+halfHours = halfHoursFrom exampleStartHour
+
+exampleEvents :: EventMap
+exampleEvents =
+  eventsToMap [ SimpleEvent "" "" (mkStartDT (UTCDateTime (hh !! 0))) (mkEndDT (UTCDateTime (hh !! 3)))
+              , SimpleEvent "" "" (mkStartDT (UTCDateTime (hh !! 4))) (mkEndDT (UTCDateTime (hh !! 7)))
+              ]
+  where date = fromGregorian 2016 8 20
+        hh = halfHours
