@@ -4,12 +4,16 @@ module Data.Pacemaker where
 import Text.ICalendar
 import Data.Char
 import Data.List (mapAccumL)
+import Data.Text.Lazy (Text)
 import Data.Monoid ((<>))
 import Text.Read (readMaybe)
 import Data.Maybe (fromMaybe)
 import Data.Default (def)
 import Data.ByteString.Lazy (ByteString)
+import qualified Data.Map.Lazy as Map
 import qualified Data.ByteString.Lazy.Char8 as BL
+
+type EventMap = Map.Map (Text, Maybe (Either Date DateTime)) VEvent
 
 parseWordCount :: String -> Int
 parseWordCount = fromMaybe 0 . readMaybe . takeWhile isDigit
@@ -37,6 +41,12 @@ correctFormat = correctFormatWith [ insertProdID
                                   , insertDTstampAndUID
                                   ]
 
+transformVCalendar :: VCalendar -> VCalendar
+transformVCalendar cal = cal { vcEvents = transformVEvents (vcEvents cal) }
+
+transformVEvents :: EventMap -> EventMap
+transformVEvents = id
+
 parseScheduleFile :: FilePath -> IO (Either String ([VCalendar], [String]))
 parseScheduleFile path = do
   file <- BL.readFile path
@@ -46,4 +56,5 @@ parseScheduleText :: String -> ByteString -> Either String ([VCalendar], [String
 parseScheduleText path = parseICalendar def path . correctFormat
 
 makeSchedule :: ByteString -> ByteString
-makeSchedule = BL.pack . show . parseScheduleText "STDIN" . correctFormat
+makeSchedule = either (BL.pack) makeCal . parseScheduleText "STDIN" . correctFormat
+  where makeCal = printICalendar def . transformVCalendar . head . fst

@@ -4,32 +4,13 @@ module Data.PacemakerSpec (main, spec) where
 import Data.Either (isRight)
 import Test.Hspec
 import Test.QuickCheck
-import Data.String.Here (here, hereFile)
-import qualified Data.ByteString.Lazy.Char8 as BL
 import Data.Pacemaker
+import Data.PacemakerFixture
 
 -- `main` is here so that this module can be run from GHCi on its own.  It is
 -- not needed for automatic spec discovery.
 main :: IO ()
 main = hspec spec
-
-exampleCalendar :: BL.ByteString
-exampleCalendar = BL.pack [hereFile|test/example.ics|]
-
-examplePreamble :: BL.ByteString
-examplePreamble = BL.pack [here|
-BEGIN:VCALENDAR
-VERSION:2.0
-BEGIN:VEVENT
-|]
-
-exampleCorrectedPreamble :: BL.ByteString
-exampleCorrectedPreamble = BL.pack [here|
-BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//hacksw/handcal//NONSGML v1.0//EN
-BEGIN:VEVENT
-|]
 
 spec :: Spec
 spec = do
@@ -37,8 +18,8 @@ spec = do
     it "turns the word count string into an Int" $ property $
       \(NonNegative i) -> let wc = show i ++ " words"
                           in parseWordCount wc === i
-  describe "wordCountToTime" $ do
-    it "converts a word count to a start and end time" $ do
+  describe "wordCountToTimes" $ do
+    it "converts a word count to a list of max 3-pomo blocks with half hour breaks" $ do
       pending
   describe "insertProdID" $ do
     it "corrects the calendar input to contain a prodID" $
@@ -46,6 +27,9 @@ spec = do
   describe "parseScheduleText" $ do
     it "applies corrections to the format and parses the schedule" $
       parseScheduleText "test/example.ics" exampleCalendar `shouldSatisfy` isRight
+  describe "transformVEvents" $ do
+    it "takes an EventMap and splits the events into 3-pomo blocks (with half-hour breaks)" $
+      transformVEvents exampleEvent `shouldBe` exampleEvents
   describe "makeSchedule" $ do
     it "turns an all-day Pacemaker schedule into a Pomodoro-friendly block schedule" $ do
       pending
