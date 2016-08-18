@@ -17,10 +17,21 @@ wordCountToTime wc = undefined
 
 -- | Pacemaker's output is missing the PRODID needed for parsing. This function
 -- adds it in.
-insertProdID :: ByteString -> ByteString
-insertProdID = BL.intercalate "\n" . ins . BL.split '\n'
-  where ins (a:b:xs) = a:b:prodIDline:xs
-        prodIDline = "PRODID:-//hacksw/handcal//NONSGML v1.0//EN"
+insertProdID :: [ByteString] -> [ByteString]
+insertProdID (a:b:xs) = a:b:prodIDline:xs
+  where prodIDline = "PRODID:-//hacksw/handcal//NONSGML v1.0//EN"
+
+correctFormatWith :: [([ByteString] -> [ByteString])] -> ByteString -> ByteString
+correctFormatWith fs = BL.intercalate "\n" . fs' . BL.split '\n'
+  where fs' = foldr (.) id fs
+
+correctFormat :: ByteString -> ByteString
+correctFormat = correctFormatWith [ insertProdID ]
+
+parseScheduleFile :: FilePath -> IO (Either String ([VCalendar], [String]))
+parseScheduleFile path = do
+  file <- BL.readFile path
+  return $ parseICalendar def path (correctFormat file)
 
 makeSchedule :: ByteString -> ByteString
-makeSchedule = BL.pack . show . parseICalendar def "STDIN"
+makeSchedule = BL.pack . show . parseICalendar def "STDIN" . correctFormat

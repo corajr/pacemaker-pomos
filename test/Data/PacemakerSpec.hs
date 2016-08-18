@@ -41,7 +41,7 @@ spec = do
       pending
   describe "insertProdID" $ do
     it "corrects the calendar input to contain a prodID" $
-      insertProdID examplePreamble `shouldBe` exampleCorrectedPreamble
+      correctFormatWith [insertProdID] examplePreamble `shouldBe` exampleCorrectedPreamble
   describe "makeSchedule" $ do
     it "turns an all-day Pacemaker schedule into a Pomodoro-friendly block schedule" $ do
       pending
