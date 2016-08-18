@@ -1,12 +1,23 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 module Data.Pacemaker.Event where
 
 import Text.ICalendar.Types
 import GHC.Exts
 import Data.Time
+import Data.List (mapAccumL)
 import Data.Monoid ((<>))
 import Data.Text.Lazy (Text)
 import qualified Data.Map.Lazy as Map
+
+type EventMap = Map.Map (Text, Maybe (Either Date DateTime)) VEvent
+
+data SimpleEvent = SimpleEvent
+  { evtSummary :: Text
+  , evtDescription :: Text
+  , evtStart :: DTStart
+  , evtEnd :: Either DTEnd DurationProp
+  } deriving (Eq, Show)
 
 basicDesc :: Text -> Description
 basicDesc desc =
@@ -44,14 +55,18 @@ mkDuration duration = Right (DurationProp { durationValue = duration
                                           , durationOther = OtherParams (fromList [])
                                           })
 
-mkEvent :: Int -> Text -> Text -> DTStart -> Either DTEnd DurationProp -> VEvent
-mkEvent uid desc summary start end =
+mkUID :: Int -> UID
+mkUID i =
+  UID {uidValue = "uid" <> fromString (show i) <> "@example.com", uidOther = OtherParams (fromList [])}
+
+mkEvent :: Int -> SimpleEvent -> VEvent
+mkEvent uid (SimpleEvent {..}) =
   VEvent { veDTStamp = DTStamp {dtStampValue = UTCTime (fromGregorian 2015 10 13) 0, dtStampOther = OtherParams (fromList [])}
-         , veUID = UID {uidValue = "uid" <> fromString (show uid) <> "@example.com", uidOther = OtherParams (fromList [])}
+         , veUID = mkUID uid
          , veClass = Class {classValue = Public, classOther = OtherParams (fromList [])}
-         , veDTStart = Just start
+         , veDTStart = Just evtStart
          , veCreated = Nothing
-         , veDescription = Just (basicDesc desc)
+         , veDescription = Just (basicDesc evtDescription)
          , veGeo = Nothing
          , veLastMod = Nothing
          , veLocation = Nothing
@@ -59,11 +74,16 @@ mkEvent uid desc summary start end =
          , vePriority = Priority {priorityValue = 0, priorityOther = OtherParams (fromList [])}
          , veSeq = Sequence {sequenceValue = 0, sequenceOther = OtherParams (fromList [])}
          , veStatus = Nothing
-         , veSummary = Just (basicSummary summary)
+         , veSummary = Just (basicSummary evtSummary)
          , veTransp = Transparent {timeTransparencyOther = OtherParams (fromList [])}
          , veUrl = Nothing
          , veRecurId = Nothing
          , veRRule = fromList []
-         , veDTEndDuration = Just end
+         , veDTEndDuration = Just evtEnd
          , veAttach = fromList [], veAttendee = fromList [], veCategories = fromList [], veComment = fromList [], veContact = fromList [], veExDate = fromList [], veRStatus = fromList [], veRelated = fromList [], veResources = fromList [], veRDate = fromList [], veAlarms = fromList [], veOther = fromList []
          }
+
+eventsToMap :: [SimpleEvent] -> EventMap
+eventsToMap = Map.fromList . map fromEvtUid . snd . mapAccumL renumber 0
+  where fromEvtUid evt@(VEvent {..}) = ((uidValue veUID, Nothing), evt)
+        renumber i x = (i+1, mkEvent i x)

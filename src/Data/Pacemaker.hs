@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Data.Pacemaker where
+module Data.Pacemaker ( module Data.Pacemaker.Event
+                      , module Data.Pacemaker ) where
 
+import Data.Pacemaker.Event
 import Text.ICalendar
 import Data.Char
 import Data.List (mapAccumL)
@@ -12,8 +14,6 @@ import Data.Default (def)
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.Map.Lazy as Map
 import qualified Data.ByteString.Lazy.Char8 as BL
-
-type EventMap = Map.Map (Text, Maybe (Either Date DateTime)) VEvent
 
 parseWordCount :: String -> Int
 parseWordCount = fromMaybe 0 . readMaybe . takeWhile isDigit
