@@ -64,7 +64,7 @@ pomosToHalfHours = go 0
   where go :: Int -> Int -> [(Int, Int)]
         go n i | i == 0 = []
                | i < 3 = [(n, n + i)]
-               | otherwise = (n, n + 3) : go (n + 3 + 1) (i - 3)
+               | otherwise = (n, n + 3) : go (n + 4) (i - 3)
 
 
 pomosToTimeBlocks :: Day -> Int -> [(UTCTime, UTCTime)]

@@ -65,7 +65,7 @@ spec = do
       pomosToTimeBlocks d 4 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 5)]
       pomosToTimeBlocks d 5 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 6)]
       pomosToTimeBlocks d 6 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 7)]
-      pomosToTimeBlocks d 6 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 7), (hh !! 8, hh !! 9)]
+      pomosToTimeBlocks d 7 `shouldBe` [(hh !! 0, hh !! 3), (hh !! 4, hh !! 7), (hh !! 8, hh !! 9)]
   describe "transformVEvents" $ do
     it "takes an EventMap and splits the events into 3-pomo blocks (with half-hour breaks)" $ do
       transformVEvents exampleEvent `shouldBe` exampleEvents
