@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 module Data.Pacemaker ( module Data.Pacemaker.Event
                       , module Data.Pacemaker ) where
 
@@ -7,9 +8,11 @@ import Text.ICalendar
 import Data.Char
 import Data.List (mapAccumL)
 import Data.Text.Lazy (Text)
+import qualified Data.Text.Lazy as Text
 import Data.Monoid ((<>))
 import Text.Read (readMaybe)
 import Data.Maybe (fromMaybe)
+import Data.Time
 import Data.Default (def)
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.Map.Lazy as Map
@@ -43,6 +46,11 @@ correctFormat = correctFormatWith [ insertProdID
 
 transformVCalendar :: VCalendar -> VCalendar
 transformVCalendar cal = cal { vcEvents = transformVEvents (vcEvents cal) }
+
+eventToDateAndWordCount :: VEvent -> (Day, Int)
+eventToDateAndWordCount (VEvent {..}) =
+  ( maybe (error "Not a date") (dateValue . dtStartDateValue) veDTStart
+  , parseWordCount (maybe "" (Text.unpack . summaryValue) veSummary))
 
 transformVEvents :: EventMap -> EventMap
 transformVEvents = id
