@@ -1,6 +1,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 module Data.PacemakerSpec (main, spec) where
 
+import Data.Either (isRight)
 import Test.Hspec
 import Test.QuickCheck
 import Data.String.Here (here, hereFile)
@@ -42,6 +43,9 @@ spec = do
   describe "insertProdID" $ do
     it "corrects the calendar input to contain a prodID" $
       correctFormatWith [insertProdID] examplePreamble `shouldBe` exampleCorrectedPreamble
+  describe "parseScheduleText" $ do
+    it "applies corrections to the format and parses the schedule" $
+      parseScheduleText "test/example.ics" exampleCalendar `shouldSatisfy` isRight
   describe "makeSchedule" $ do
     it "turns an all-day Pacemaker schedule into a Pomodoro-friendly block schedule" $ do
       pending
